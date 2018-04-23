@@ -37,26 +37,25 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     // 当前Activity的引用
     private Activity mActivity;
     private SampleApplicationControl mSessionControl;
-    
-    // 标识
+
     private boolean mStarted = false;
     private boolean mCameraRunning = false;
     
-    // 异步初始化Vuforia SDK:
+    // 异步初始化Vuforia SDK的任务:
     private InitVuforiaTask mInitVuforiaTask;
     private InitTrackerTask mInitTrackerTask;
     private LoadTrackerTask mLoadTrackerTask;
     private StartVuforiaTask mStartVuforiaTask;
     private ResumeVuforiaTask mResumeVuforiaTask;
     
-    // 一个用来同步 初始化Vuforia，载入dataset和 生命周期事件onDestroy() 的锁。
-    // 如果正在载入datadet时，application（应用）被destroyed，那么会先完成载入再关闭Vuforia
+    // 初始化Vuforia，载入dataset和 生命周期事件onDestroy()的锁。
+    // 注意：如果正在载入datadet时，应用被destroyed，那么会先完成载入再关闭Vuforia
     private final Object mLifecycleLock = new Object();
     
-    // Vuforia初始化标识:
+    // Vuforia初始化标识:（OpenGL ES 版本号）
     private int mVuforiaFlags = 0;
     
-    // 摄像头配置信息：用来resume
+    // 摄像头配置信息：主要用来resume
     private int mCamera = CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT;
     
 
@@ -66,20 +65,20 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     }
     
     
-    // 初始化 Vuforia ，设置偏好（preferences）.
+    // 初始化Vuforia，设置偏好.
     public void initAR(Activity activity, int screenOrientation)
     {
         //AR初始化用户自定义异常
         SampleApplicationException vuforiaException = null;
         mActivity = activity;
 
-        //Build.VERSION_CODES.FROYO =>2.2 sdk版本大于2.2
+
         if ((screenOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR)
-            && (Build.VERSION.SDK_INT > Build.VERSION_CODES.FROYO))
+            && (Build.VERSION.SDK_INT > Build.VERSION_CODES.FROYO))//Build.VERSION_CODES.FROYO =>2.2 sdk版本大于2.2
             screenOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR;
         
         //这里用OrientationChangeListener来捕捉所有屏幕方向(Orientation)改变.  Android
-        //安卓在180度方向改变时是不会回调一个 Activity中的onConfigurationChanged()
+        //安卓在180度方向改变时是不会回调Activity中的onConfigurationChanged()方法
         //也就是说左右改变不会有反应，而Vuforia需要做出响应，因为需要更新矩阵变换
         // Use an OrientationChangeListener here to capture all orientation changes.  Android
         // will not send an Activity.onConfigurationChanged() callback on a 180 degree rotation,
@@ -101,7 +100,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         if(orientationEventListener.canDetectOrientation())
             orientationEventListener.enable();
 
-        // 适配屏幕方向 Apply screen orientation
+        // 适配屏幕方向
         mActivity.setRequestedOrientation(screenOrientation);
         
         // 保持常亮
@@ -111,7 +110,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         
         mVuforiaFlags = INIT_FLAGS.GL_30;
 
-        //异步初始化Vuforia SDK，避免阻塞 主线程(UI线程)
+        //异步初始化Vuforia SDK，避免阻塞主线程(UI线程)
         //注意：必须由UI线程触发，并且只能执行一次
         // Initialize Vuforia SDK asynchronously to avoid blocking the
         // main (UI) thread.
@@ -146,16 +145,13 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
         if (vuforiaException != null)
         {
-            // 初始化有问题时停止初始化
-            // Send Vuforia Exception to the application and call initDone
-            // to stop initialization process
+            // 将错误传给initDone停止初始化进程
             mSessionControl.onInitARDone(vuforiaException);
         }
     }
     
     
     // 启动Vuforia， 初始化并启动摄像头和trackers（追踪器）
-    // Starts Vuforia, initialize and starts the camera and start the trackers
     private void startCameraAndTrackers(int camera) throws SampleApplicationException
     {
         String error;
@@ -218,9 +214,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
         if (vuforiaException != null)
         {
-            // 初始化有问题时停止初始化
-            // Send Vuforia Exception to the application and call initDone
-            // to stop initialization process
+            // 将错误传给initDone停止初始化进程
             mSessionControl.onInitARDone(vuforiaException);
         }
     }
@@ -229,7 +223,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     // Stops any ongoing initialization, stops Vuforia
     public void stopAR() throws SampleApplicationException
     {
-        // 取消潜在运行的任务
+        // 取消潜在运行的初始化任务
         // Cancel potentially running tasks
         if (mInitVuforiaTask != null
             && mInitVuforiaTask.getStatus() != InitVuforiaTask.Status.FINISHED)
@@ -251,7 +245,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         mStarted = false;
         
         stopCamera();
-        
+
+        // 保证所有异步初始化操作和追踪器数据载入不会重叠
         // Ensure that all asynchronous operations to initialize Vuforia
         // and loading the tracker datasets do not overlap:
         synchronized (mLifecycleLock)
@@ -259,14 +254,14 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             
             boolean unloadTrackersResult;
             boolean deinitTrackersResult;
-            
-            // Destroy the tracking data set:
+
+            // 摧毁追踪器数据集
             unloadTrackersResult = mSessionControl.doUnloadTrackersData();
-            
-            // Deinitialize the trackers:
+
+            // 关闭追踪器
             deinitTrackersResult = mSessionControl.doDeinitTrackers();
-            
-            // Deinitialize Vuforia SDK:
+
+            // 停用vuforia SDK
             Vuforia.deinit();
             
             if (!unloadTrackersResult)
@@ -283,7 +278,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     }
     
 
-    // Resumes Vuforia, restarts the trackers and the camera
+    // 恢复vuforia，重启追踪器和摄像机
     private void resumeAR()
     {
         SampleApplicationException vuforiaException = null;
@@ -303,14 +298,13 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
         if (vuforiaException != null)
         {
-            // 初始化有问题时停止初始化
-            // Send Vuforia Exception to the application and call initDone
-            // to stop initialization process
+            // 将错误传给initDone停止初始化进程
             mSessionControl.onInitARDone(vuforiaException);
         }
     }
 
 
+    // 暂停AR，停止摄像机
     // Pauses Vuforia and stops the camera
     public void pauseAR() throws SampleApplicationException
     {
@@ -359,13 +353,13 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         Vuforia.onPause();
     }
     
-    
+    // 适应界面变化
     public void onSurfaceChanged(int width, int height)
     {
         Vuforia.onSurfaceChanged(width, height);
     }
     
-    
+    // 界面创建时调用
     public void onSurfaceCreated()
     {
         Vuforia.onSurfaceCreated();
@@ -379,11 +373,10 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         // Initialize with invalid value:
         private int mProgressValue = -1;
         
-        
+        // 初始化背景（现实世界）
         protected Boolean doInBackground(Void... params)
         {
             //防止onDestroyed方法和初始化同时运行
-            // Prevent the onDestroy() method to overlap with initialization:
             synchronized (mLifecycleLock)
             {
                 //填写Vuforia Key
@@ -392,7 +385,8 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 
                 do
                 {
-                    // 当初始化完成一步前Vuforia.init()会一直阻塞，通过百分比形式给出进度，然后继续下一步
+                    // 初始化一步一步完成，在每一步进行期间会一直阻塞。
+                    // 进度通过百分比形式给出。
                     // 当Vuforia.init()返回-1时表示有错误
                     // 当进度百分比为100%时初始化完成
                     // Vuforia.init() blocks until an initialization step is
@@ -403,12 +397,10 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                     mProgressValue = Vuforia.init();
 
                     // 展示进度
-                    // Publish the progress value:
                     publishProgress(mProgressValue);
 
-                    // 同时我们要通过调用 AsyncTask.cancel(true)来确定是否任务被取消
-                    // 如果被取消则停止线程.因为AsyncTask 会一直运行到结束无论开始时
-                    // component的状态.
+                    // 同时要通过调用 AsyncTask.cancel(true)来确定是否任务被取消
+                    // 如果被取消则停止线程.因为AsyncTask 会一直运行到结束无论开始时component的状态.
                     // We check whether the task has been canceled in the
                     // meantime (by calling AsyncTask.cancel(true)).
                     // and bail out if it has, thus stopping this thread.
@@ -426,14 +418,12 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         protected void onProgressUpdate(Integer... values)
         {
             // 进度条更新 这里没有实现
-            // Do something with the progress value "values[0]", e.g. update
-            // splash screen, progress bar, etc.
         }
         
         
         protected void onPostExecute(Boolean result)
         {
-            // 完成Vuforia初始化.继续下一个应用
+            // 完成Vuforia初始化.
             // Done initializing Vuforia, proceed to next application
             // initialization status:
 
@@ -459,13 +449,10 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             } else
             {
                 String logMessage;
-                
-                // NOTE: Check if initialization failed because the device is
-                // not supported. At this point the user should be informed
-                // with a message.
+
+                // 注意：检查初始化是否因为设备不支持而失败 并通知用户
                 logMessage = getInitializationErrorString(mProgressValue);
-                
-                // Log error:
+
                 Log.e(LOGTAG, "InitVuforiaTask.onPostExecute: " + logMessage
                     + " Exiting.");
 
@@ -476,19 +463,18 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
             if (vuforiaException != null)
             {
-                // Send Vuforia Exception to the application and call initDone
-                // to stop initialization process
+                // 将错误传给initDone停止初始化进程
                 mSessionControl.onInitARDone(vuforiaException);
             }
         }
     }
 
-    // An async task to resume Vuforia asynchronously
+    // 异步恢复vuforia
     private class ResumeVuforiaTask extends AsyncTask<Void, Void, Void>
     {
         protected Void doInBackground(Void... params)
         {
-            // Prevent the concurrent lifecycle operations:
+            // 加锁
             synchronized (mLifecycleLock)
             {
                 Vuforia.onResume();
@@ -501,7 +487,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         {
             Log.d(LOGTAG, "ResumeVuforiaTask.onPostExecute");
 
-            // We may start the camera only if the Vuforia SDK has already been initialized
+            // 在vuforia sdk初始化完成后启动摄像机
             if (mStarted && !mCameraRunning)
             {
                 startAR(mCamera);
@@ -510,14 +496,14 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         }
     }
 
-    // An async task to initialize trackers asynchronously
+    // 异步初始化追踪器
     private class InitTrackerTask extends AsyncTask<Void, Integer, Boolean>
     {
         protected Boolean doInBackground(Void... params)
         {
             synchronized (mLifecycleLock)
             {
-                // Load the tracker data set:
+                // 加载追踪器
                 return mSessionControl.doInitTrackers();
             }
         }
@@ -550,7 +536,6 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                 String logMessage = "Failed to load tracker data.";
                 Log.e(LOGTAG, logMessage);
 
-                // Error loading dataset
                 vuforiaException = new SampleApplicationException(
                         SampleApplicationException.TRACKERS_INITIALIZATION_FAILURE,
                         logMessage);
@@ -558,26 +543,21 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
             if (vuforiaException != null)
             {
-                // 初始化有问题时停止初始化
-                // Send Vuforia Exception to the application and call initDone
-                // to stop initialization process
+                // 将错误传给initDone停止初始化进程
                 mSessionControl.onInitARDone(vuforiaException);
             }
         }
     }
 
     // 异步载入追踪器数据
-    // An async task to load the tracker data asynchronously.
     private class LoadTrackerTask extends AsyncTask<Void, Void, Boolean>
     {
         protected Boolean doInBackground(Void... params)
         {
             // 加锁
-            // Prevent the concurrent lifecycle operations:
             synchronized (mLifecycleLock)
             {
                 //加载追踪器dataset
-                // Load the tracker data set:
                 return mSessionControl.doLoadTrackersData();
             }
         }
@@ -593,7 +573,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             if (!result)
             {
                 String logMessage = "Failed to load tracker data.";
-                // Error loading dataset
+
                 Log.e(LOGTAG, logMessage);
                 vuforiaException = new SampleApplicationException(
                     SampleApplicationException.LOADING_TRACKERS_FAILURE,
@@ -614,21 +594,17 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             }
 
             // 完成追踪器载入，更新应用状态，传递exception检查是否有错误
-            // Done loading the tracker, update application status, send the
-            // exception to check errors
             mSessionControl.onInitARDone(vuforiaException);
         }
     }
 
     // 异步启动摄像机和追踪器
-    // An async task to start the camera and trackers
     private class StartVuforiaTask extends AsyncTask<Void, Void, Boolean>
     {
         SampleApplicationException vuforiaException = null;
         protected Boolean doInBackground(Void... params)
         {
-            // 防止同时有生命周期操作
-            // Prevent the concurrent lifecycle operations:
+            //加锁
             synchronized (mLifecycleLock)
             {
                 try {
@@ -653,9 +629,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
             if (vuforiaException != null)
             {
-                // 如果出现问题 停止初始化
-                // Send Vuforia Exception to the application and call initDone
-                // to stop initialization process
+                // 将错误传给initDone停止初始化进程
                 mSessionControl.onInitARDone(vuforiaException);
             }
         }
@@ -701,9 +675,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     }
     
 
-    // AR是否启动
-    // Returns true if Vuforia is initialized, the trackers started and the
-    // tracker data loaded
+    // AR是否运行
     private boolean isARRunning()
     {
         return mStarted;

@@ -25,27 +25,19 @@ public interface SampleApplicationControl
     
 
     //开始追踪
-    // To be called to start tracking with the initialized trackers and their
-    // loaded data
     boolean doStartTrackers();
     
     //停止追踪
-    // To be called to stop the trackers
     boolean doStopTrackers();
     
-    //摧毁追踪器数据
-    // To be called to destroy the trackers' data
+    //停用追踪器数据
     boolean doUnloadTrackersData();
     
-    //逆初始化追踪器
-    // To be called to deinitialize the trackers
+    //关闭追踪器
     boolean doDeinitTrackers();
     
     // 当Vuforia初始化完成后调用
     // 此时追踪器已经完成初始化，数据已经载入，追踪器可以启动了
-    // This callback is called after the Vuforia initialization is complete,
-    // the trackers are initialized, their data loaded and
-    // tracking is ready to start
     void onInitARDone(SampleApplicationException e);
     
     // 周期调用更新函数

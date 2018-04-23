@@ -28,35 +28,28 @@ public class RefFreeFrame
     
     private static final String LOGTAG = "RefFreeFrame";
     
-    // Some helper functions
+    // 状态枚举
     enum STATUS
     {
         STATUS_IDLE, STATUS_SCANNING, STATUS_CREATING, STATUS_SUCCESS
-    };
+    }
     
-    STATUS curStatus;
+    STATUS curStatus;//当前状态
 
     // / 当前target finder的颜色.由框架中设置的图形质量决定
-    // / Current color of the target finder. This changes color
-    // / depending on frame quality.
     float colorFrame[];
 
-    // / 屏幕半尺寸，常用于渲染管线
-    // / Half of the screen size, used often in the rendering pipeline
+    // / 屏幕半尺寸，用于渲染管线
     Vec2F halfScreenSize;
 
     // / 持续追踪框架中颜色转换的时间
-    // / Keep track of the time between frames for color transitions
     long lastFrameTime;
     long lastSuccessTime;
 
     // 所有渲染方法都包含再这个类中
-    // All rendering methods are contained in this class for easy
-    // extraction/abstraction
     RefFreeFrameGL frameGL;
 
     // 从Target Builder中提取出的最新的 可追踪图源（trackable source）
-    // The latest trackable source to be extracted from the Target Builder
     TrackableSource trackableSource;
     
     UserDefinedTargets mActivity;
@@ -70,8 +63,6 @@ public class RefFreeFrame
         float vOut = v0 + inc;
         return (vOut < a ? a : (vOut > b ? b : vOut));
     }
-    
-    
     float transition(float v0, float inc)
     {
         return transition(v0, inc, 0.0f, 1.0f);
@@ -99,9 +90,6 @@ public class RefFreeFrame
     
     void init()
     {
-//        // load the frame texture
-//        frameGL.getTextures();
-        
         trackableSource = null;
     }
     
@@ -136,7 +124,7 @@ public class RefFreeFrame
         videoBackgroundConfigSize[1] = temp[1] * 0.5f;
         
         halfScreenSize.setData(videoBackgroundConfigSize);
-        // sets last frame timer
+        // 设置时间戳
         lastFrameTime = System.currentTimeMillis();
         
         reset();
@@ -158,10 +146,11 @@ public class RefFreeFrame
     
     void updateUIState(ImageTargetBuilder targetBuilder, int frameQuality)
     {
-        // ** Elapsed time
+        // ** 经过时长
         long elapsedTimeMS = System.currentTimeMillis() - lastFrameTime;
         lastFrameTime += elapsedTimeMS;
-        
+
+        // 根据时间变化的值 用作版秒内在[0,1]范围内过渡
         // This is a time-dependent value used for transitions in 
         // the range [0,1] over the period of half of a second.
         float transitionHalfSecond = elapsedTimeMS * 0.002f;
@@ -170,18 +159,18 @@ public class RefFreeFrame
         
         switch (curStatus)
         {
-            case STATUS_IDLE:
+            case STATUS_IDLE://闲置
                 if (frameQuality != ImageTargetBuilder.FRAME_QUALITY.FRAME_QUALITY_NONE)
                     newStatus = STATUS.STATUS_SCANNING;
                 
                 break;
             
-            case STATUS_SCANNING:
-                switch (frameQuality)
+            case STATUS_SCANNING://扫描章台
+                switch (frameQuality)//检查画面质量
                 {
                     // target的质量过低（纹理过简单无法辨认），渲染frame为白色直到匹配，变为绿色
-                // bad target quality, render the frame white until a match is
-                // made, then go to green
+                    // bad target quality, render the frame white until a match is
+                    // made, then go to green
                     case ImageTargetBuilder.FRAME_QUALITY.FRAME_QUALITY_LOW:
                         colorFrame[0] = 1.0f;
                         colorFrame[1] = 1.0f;
@@ -189,7 +178,7 @@ public class RefFreeFrame
                         
                         break;
                         //良好的target 半秒内换为绿色
-                    // good target, switch to green over half a second
+                        // good target, switch to green over half a second
                     case ImageTargetBuilder.FRAME_QUALITY.FRAME_QUALITY_HIGH:
                     case ImageTargetBuilder.FRAME_QUALITY.FRAME_QUALITY_MEDIUM:
                         colorFrame[0] = transition(colorFrame[0],
@@ -203,7 +192,7 @@ public class RefFreeFrame
                 }
                 break;
             
-            case STATUS_CREATING:
+            case STATUS_CREATING://创建状态
             {
                 // 检索新的可追踪图源
                 // 如果找到则设置为成功，记录时间
@@ -231,18 +220,15 @@ public class RefFreeFrame
     void render()
     {
         // 得到追踪器
-        // Get the image tracker
         TrackerManager trackerManager = TrackerManager.getInstance();
         ObjectTracker objectTracker = (ObjectTracker) (trackerManager
             .getTracker(ObjectTracker.getClassType()));
 
         // 从target builder中得到画面质量
-        // Get the frame quality from the target builder
         ImageTargetBuilder targetBuilder = objectTracker.getImageTargetBuilder();
         int frameQuality = targetBuilder.getFrameQuality();
 
         // 更新UI内部状态变量
-        // Update the UI internal state variables
         updateUIState(targetBuilder, frameQuality);
         
         if (curStatus == STATUS.STATUS_SUCCESS)
@@ -254,7 +240,6 @@ public class RefFreeFrame
         }
 
         // 渲染
-        // Renders the hints
         switch (curStatus)
         {
             case STATUS_SCANNING:

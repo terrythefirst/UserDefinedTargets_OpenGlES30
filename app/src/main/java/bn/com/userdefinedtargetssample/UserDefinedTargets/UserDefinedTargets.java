@@ -41,12 +41,7 @@ import bn.com.userdefinedtargetssample.SampleApplication.SampleApplicationExcept
 import bn.com.userdefinedtargetssample.SampleApplication.SampleApplicationSession;
 import bn.com.userdefinedtargetssample.SampleApplication.utils.LoadingDialogHandler;
 import bn.com.userdefinedtargetssample.SampleApplication.utils.MySampleApplicationGLView;
-import bn.com.userdefinedtargetssample.SampleApplication.utils.Texture;
 import bn.com.userdefinedtargetssample.R;
-
-import java.util.ArrayList;
-import java.util.Vector;
-
 
 // main activity
 public class UserDefinedTargets extends Activity implements
@@ -61,9 +56,6 @@ public class UserDefinedTargets extends Activity implements
     
     //renderer:
     private UserDefinedTargetRenderer mRenderer;
-    
-    // The textures we will use for rendering:
-    private Vector<Texture> mTextures;
 
     //叠加在 AR view上的 View
     // View overlays to be displayed in the Augmented View
@@ -173,7 +165,8 @@ public class UserDefinedTargets extends Activity implements
         super.onResume();
 
         showProgressIndicator(true);
-        
+
+        // 强制竖屏
         // This is needed for some Droid devices to force portrait
         if (mIsDroidDevice)
         {
@@ -224,11 +217,7 @@ public class UserDefinedTargets extends Activity implements
         {
             Log.e(LOGTAG, e.getString());
         }
-        
-        // Unload texture:
-        mTextures.clear();
-        mTextures = null;
-        
+
         System.gc();
     }
     
@@ -242,9 +231,6 @@ public class UserDefinedTargets extends Activity implements
         super.onConfigurationChanged(config);
         
         vuforiaAppSession.onConfigurationChanged();
-        
-        // Removes the current layout and inflates a proper layout
-        // for the new screen orientation
         
         if (mUILayout != null)
         {
@@ -375,19 +361,12 @@ public class UserDefinedTargets extends Activity implements
             startBuild();
         }
     }
-    
-    
-//    // Creates a texture given the filename
-//    Texture createTexture(String nName)
-//    {
-//        return Texture.loadTextureFromApk(nName, getAssets());
-//    }
-//
-    
+
+    // 当target创建成功时回掉
     // Callback function called when the target creation finished
     void targetCreated()
     {
-        // Hides the loading dialog
+        // 隐藏载入对话框
         loadingDialogHandler
             .sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
         
@@ -398,11 +377,9 @@ public class UserDefinedTargets extends Activity implements
         
     }
     
-    
-    // Initialize views
+    // 初始化界面
     private void initializeBuildTargetModeViews()
     {
-        // Shows the bottom bar
         mBottomBar.setVisibility(View.VISIBLE);
         mCameraButton.setVisibility(View.VISIBLE);
     }
@@ -599,9 +576,11 @@ public class UserDefinedTargets extends Activity implements
     @Override
     public boolean doUnloadTrackersData()
     {
+        // 追踪器正确卸载标识
         // Indicate if the trackers were unloaded correctly
         boolean result = true;
-        
+
+        // 得到图像追踪器
         // Get the image tracker:
         TrackerManager trackerManager = TrackerManager.getInstance();
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
@@ -642,6 +621,7 @@ public class UserDefinedTargets extends Activity implements
     @Override
     public boolean doDeinitTrackers()
     {
+        // 追踪器正确关闭标识
         // Indicate if the trackers were deinitialized correctly
         boolean result = true;
         
