@@ -323,20 +323,16 @@ public class UserDefinedTargets extends Activity implements
         }
 
         // 添加界面
-        // Adds the inflated layout to the view
         addContentView(mUILayout, new LayoutParams(LayoutParams.MATCH_PARENT,
             LayoutParams.MATCH_PARENT));
 
         // 得到底部导航栏的引用
-        // Gets a reference to the bottom navigation bar
         mBottomBar = mUILayout.findViewById(R.id.bottom_bar);
 
         // 得到摄像机按钮的引用
-        // Gets a reference to the Camera button
         mCameraButton = mUILayout.findViewById(R.id.camera_button);
 
         // 得到载入对话框的container的引用
-        // Gets a reference to the loading dialog container
         loadingDialogHandler.mLoadingDialogContainer = mUILayout
             .findViewById(R.id.loading_layout);
 
@@ -346,7 +342,6 @@ public class UserDefinedTargets extends Activity implements
     }
     
     // 摄像机按钮触控
-    // Button Camera clicked
     public void onCameraClick(View v)
     {
         if (isUserDefinedTargetsRunning())
@@ -363,7 +358,6 @@ public class UserDefinedTargets extends Activity implements
     }
 
     // 当target创建成功时回掉
-    // Callback function called when the target creation finished
     void targetCreated()
     {
         // 隐藏载入对话框

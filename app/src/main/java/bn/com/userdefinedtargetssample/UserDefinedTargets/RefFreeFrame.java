@@ -127,14 +127,13 @@ public class RefFreeFrame
         // 设置时间戳
         lastFrameTime = System.currentTimeMillis();
         
-        reset();
+        reset();//重设为闲置状态
     }
     
     
     void reset()
     {
         curStatus = STATUS.STATUS_IDLE;
-        
     }
     
     
@@ -162,7 +161,6 @@ public class RefFreeFrame
             case STATUS_IDLE://闲置
                 if (frameQuality != ImageTargetBuilder.FRAME_QUALITY.FRAME_QUALITY_NONE)
                     newStatus = STATUS.STATUS_SCANNING;
-                
                 break;
             
             case STATUS_SCANNING://扫描章台

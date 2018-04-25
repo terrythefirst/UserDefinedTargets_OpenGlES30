@@ -121,8 +121,7 @@ public class MatrixState
     )
     {    	
     	Matrix.orthoM(mProjMatrix, 0, left, right, bottom, top, near, far);
-    }   
-   
+    }
     //获取具体物体的总变换矩阵
     public static float[] getFinalMatrix()
     {

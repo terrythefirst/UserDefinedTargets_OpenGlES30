@@ -36,6 +36,7 @@ import com.vuforia.VideoBackgroundConfig;
 import com.vuforia.VideoMode;
 import com.vuforia.ViewList;
 
+import bn.com.userdefinedtargetssample.BnUtils.MatrixState;
 import bn.com.userdefinedtargetssample.BnUtils.ShaderUtil;
 
 public class SampleAppRenderer {
@@ -138,13 +139,14 @@ public class SampleAppRenderer {
         if (vbShaderProgramID > 0)
         {
             vbTexSampler2DHandle = GLES30.glGetUniformLocation(vbShaderProgramID, "texSampler2D");
-            // 取得投影矩阵的引用
+            // 取得投影矩阵的引用 注意：不是 MVP矩阵
             // Retrieve handler for projection matrix shader uniform variable:
             vbProjectionMatrixHandle = GLES30.glGetUniformLocation(vbShaderProgramID, "projectionMatrix");
-
+            //获取程序中顶点位置属性引用
             vbVertexHandle = GLES30.glGetAttribLocation(vbShaderProgramID, "vertexPosition");
+            //获取程序中总变换矩阵引用
             vbTexCoordHandle = GLES30.glGetAttribLocation(vbShaderProgramID, "vertexTexCoord");
-            vbProjectionMatrixHandle = GLES30.glGetUniformLocation(vbShaderProgramID, "projectionMatrix");
+            //获取程序中顶点纹理坐标属性引用
             vbTexSampler2DHandle = GLES30.glGetUniformLocation(vbShaderProgramID, "texSampler2D");
 
         }
@@ -300,6 +302,7 @@ public class SampleAppRenderer {
         GLES30.glEnableVertexAttribArray(vbTexCoordHandle);
 
         // 传入投影矩阵
+        // 注意：不是MVP矩阵
         // Pass the projection matrix to OpenGL
         GLES30.glUniformMatrix4fv(vbProjectionMatrixHandle, 1, false, vbProjectionMatrix, 0);
 
@@ -320,7 +323,7 @@ public class SampleAppRenderer {
     static final float VIRTUAL_FOV_Y_DEGS = 85.0f;
     static final float M_PI = 3.14159f;
 
-    double getSceneScaleFactor()
+    double getSceneScaleFactor()//屏幕缩放因子计算
     {
         // 得到物理世界相机y轴的view
         // Get the y-dimension of the physical camera field of view

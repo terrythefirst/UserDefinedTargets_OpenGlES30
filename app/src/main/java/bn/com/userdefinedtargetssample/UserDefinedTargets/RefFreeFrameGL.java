@@ -20,6 +20,7 @@ import com.vuforia.Vec4F;
 import com.vuforia.VideoBackgroundConfig;
 
 import bn.com.userdefinedtargetssample.BnUtils.LoadUtil;
+import bn.com.userdefinedtargetssample.BnUtils.MatrixState;
 import bn.com.userdefinedtargetssample.BnUtils.ShaderUtil;
 import bn.com.userdefinedtargetssample.SampleApplication.SampleApplicationSession;
 
@@ -155,16 +156,19 @@ public class RefFreeFrameGL
         shaderProgramID = ShaderUtil.createProgram(mVertexShader, mFragmentShader);
         if (shaderProgramID  == 0)
             return false;
-        
+        //获取程序中顶点位置属性引用
         if ((vertexHandle = GLES30.glGetAttribLocation(shaderProgramID,
             "vertexPosition")) == -1)
             return false;
+        //获取程序中顶点纹理坐标属性引用
         if ((textureCoordHandle = GLES30.glGetAttribLocation(shaderProgramID,
             "vertexTexCoord")) == -1)
             return false;
+        //获取程序中总变换矩阵引用
         if ((mvpMatrixHandle = GLES30.glGetUniformLocation(shaderProgramID,
             "modelViewProjectionMatrix")) == -1)
             return false;
+        //获取程序中颜色引用
         if ((colorHandle = GLES30.glGetUniformLocation(shaderProgramID,
             "keyColor")) == -1)
             return false;
@@ -305,6 +309,7 @@ public class RefFreeFrameGL
         // 将投影矩阵和变换矩阵相乘传给着色器
         // Calculate the Projection * ModelView matrix and pass to shader
         float[] mvp = new float[16];
+        MatrixState.setProjMatrix(projectionOrtho.getData());
         Matrix.multiplyMM(mvp, 0, projectionOrtho.getData(), 0,
             modelview.getData(), 0);
         GLES30.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvp, 0);
