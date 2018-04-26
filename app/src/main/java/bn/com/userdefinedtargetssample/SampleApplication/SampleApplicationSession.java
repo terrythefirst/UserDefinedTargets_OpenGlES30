@@ -77,9 +77,9 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             && (Build.VERSION.SDK_INT > Build.VERSION_CODES.FROYO))//Build.VERSION_CODES.FROYO =>2.2 sdk版本大于2.2
             screenOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR;
         
-        //这里用OrientationChangeListener来捕捉所有屏幕方向(Orientation)改变.  Android
+        //这里用OrientationChangeListener来捕捉所有屏幕方向(Orientation)改变.
         //安卓在180度方向改变时是不会回调Activity中的onConfigurationChanged()方法
-        //也就是说左右改变不会有反应，而Vuforia需要做出响应，因为需要更新矩阵变换
+        //也就是说左右改变不会有反应，而Vuforia需要做出响应来更新矩阵变换
         // Use an OrientationChangeListener here to capture all orientation changes.  Android
         // will not send an Activity.onConfigurationChanged() callback on a 180 degree rotation,
         // ie: Left Landscape to Right Landscape.  Vuforia needs to react to this change and the
@@ -389,6 +389,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
                     // 进度通过百分比形式给出。
                     // 当Vuforia.init()返回-1时表示有错误
                     // 当进度百分比为100%时初始化完成
+
                     // Vuforia.init() blocks until an initialization step is
                     // complete, then it proceeds to the next step and reports
                     // progress in percents (0 ... 100%).

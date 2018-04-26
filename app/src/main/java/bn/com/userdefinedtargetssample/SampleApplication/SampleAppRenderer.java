@@ -79,7 +79,7 @@ public class SampleAppRenderer {
         mActivity = activity;
 
         mRenderingInterface = renderingInterface;
-        mRenderer = Renderer.getInstance();
+        mRenderer = Renderer.getInstance();//单例模式
 
         if(farPlane < nearPlane)
         {
@@ -95,9 +95,10 @@ public class SampleAppRenderer {
             throw new IllegalArgumentException();
         }
 
-        Device device = Device.getInstance();
-        device.setViewerActive(stereo); // 根据是否使用viewer，立体模式 初始化渲染参数 Indicates if the app will be using a viewer, stereo mode and initializes the rendering primitives
-        device.setMode(deviceMode); // 选择AR模式或者VR模式 Select if we will be in AR or VR mode
+        Device device = Device.getInstance();//单例模式
+        device.setViewerActive(stereo); // 根据是否使用viewer，立体模式 初始化渲染参数
+        // Indicates if the app will be using a viewer, stereo mode and initializes the rendering primitives
+        device.setMode(deviceMode); // 选择AR模式或者VR模式
     }
 
     public void onSurfaceCreated()
@@ -131,8 +132,6 @@ public class SampleAppRenderer {
         mFragmentShader=ShaderUtil.loadFromAssetsFile("shader/vb_frag.sh", mActivity.getResources());
         //基于顶点着色器与片元着色器创建程序
         vbShaderProgramID = ShaderUtil.createProgram(mVertexShader, mFragmentShader);
-//        vbShaderProgramID = SampleUtils.createProgramFromShaderSrc(VideoBackgroundShader.VB_VERTEX_SHADER,
-//                VideoBackgroundShader.VB_FRAGMENT_SHADER);
 
         // 配置背景渲染参数
         // Rendering configuration for video background
@@ -228,9 +227,7 @@ public class SampleAppRenderer {
 
             float projectionMatrix[] = new float[16];
             // 对投影矩阵作出调整
-            // Apply the adjustment to the projection matrix
             Matrix.multiplyMM(projectionMatrix, 0, rawProjectionMatrixGL, 0, eyeAdjustmentGL, 0);
-            //MatrixState.setProjMatrix(projectionMatrix);
 
             currentView = viewID;
 
@@ -430,7 +427,6 @@ public class SampleAppRenderer {
 
 
     // 根据当前图源的配置信息储存屏幕方向
-    // Stores the orientation depending on the current resources configuration
     private void updateActivityOrientation()
     {
         Configuration config = mActivity.getResources().getConfiguration();
@@ -449,6 +445,6 @@ public class SampleAppRenderer {
         }
 
         Log.i(LOGTAG, "Activity is in "
-                + (mIsPortrait ? "PORTRAIT" : "LANDSCAPE"));
+                + (mIsPortrait ? "PORTRAIT（竖屏）" : "LANDSCAPE（横屏）"));
     }
 }

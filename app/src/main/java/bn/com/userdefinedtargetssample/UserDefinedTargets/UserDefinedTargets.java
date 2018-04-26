@@ -74,7 +74,7 @@ public class UserDefinedTargets extends Activity implements
     private GestureDetector mGestureDetector;
 
     
-    private boolean mExtendedTracking = false;
+    private boolean mExtendedTracking = false;//是否开启扩展追踪
     
     private LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(
         this);
@@ -366,7 +366,7 @@ public class UserDefinedTargets extends Activity implements
         
         if (refFreeFrame != null)
         {
-            refFreeFrame.reset();
+            refFreeFrame.reset();//重新设置为闲置状态
         }
         
     }
@@ -390,7 +390,7 @@ public class UserDefinedTargets extends Activity implements
     {
         Log.d(LOGTAG, "startUserDefinedTargets");
         
-        TrackerManager trackerManager = TrackerManager.getInstance();
+        TrackerManager trackerManager = TrackerManager.getInstance();//使用单例模式得到TrackerManager对象的引用
         ObjectTracker objectTracker = (ObjectTracker) (trackerManager
             .getTracker(ObjectTracker.getClassType()));
         if (objectTracker != null)
@@ -437,9 +437,9 @@ public class UserDefinedTargets extends Activity implements
     }
     
     
-    void startBuild()
+    void startBuild()//建立用户targets
     {
-        TrackerManager trackerManager = TrackerManager.getInstance();
+        TrackerManager trackerManager = TrackerManager.getInstance();//使用单例模式得到TrackerManager对象的引用
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
             .getTracker(ObjectTracker.getClassType());
         
@@ -468,7 +468,7 @@ public class UserDefinedTargets extends Activity implements
     }
     
     
-    void updateRendering()
+    void updateRendering()// 更新渲染参数 用于onSurfaceChanged()
     {
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -477,7 +477,7 @@ public class UserDefinedTargets extends Activity implements
     
     
     @Override
-    public boolean doInitTrackers()
+    public boolean doInitTrackers()//初始化追踪器
     {
         // 正确初始化追踪器标识
         // Indicate if the trackers were initialized correctly
@@ -504,7 +504,7 @@ public class UserDefinedTargets extends Activity implements
     public boolean doLoadTrackersData()
     {
         // 拿到图像追踪器引用
-        TrackerManager trackerManager = TrackerManager.getInstance();
+        TrackerManager trackerManager = TrackerManager.getInstance();//使用单例模式得到TrackerManager对象的引用
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
             .getTracker(ObjectTracker.getClassType());
         if (objectTracker == null)
@@ -542,7 +542,7 @@ public class UserDefinedTargets extends Activity implements
         // Indicate if the trackers were started correctly
         boolean result = true;
         
-        Tracker objectTracker = TrackerManager.getInstance().getTracker(
+        Tracker objectTracker = TrackerManager.getInstance().getTracker(//注意：使用单例模式得到TrackerManager对象的引用
             ObjectTracker.getClassType());
         if (objectTracker != null)
             objectTracker.start();
@@ -558,7 +558,7 @@ public class UserDefinedTargets extends Activity implements
         // Indicate if the trackers were stopped correctly
         boolean result = true;
         
-        Tracker objectTracker = TrackerManager.getInstance().getTracker(
+        Tracker objectTracker = TrackerManager.getInstance().getTracker(//注意：使用单例模式得到TrackerManager对象的引用
             ObjectTracker.getClassType());
         if (objectTracker != null)
             objectTracker.stop();
@@ -576,7 +576,7 @@ public class UserDefinedTargets extends Activity implements
 
         // 得到图像追踪器
         // Get the image tracker:
-        TrackerManager trackerManager = TrackerManager.getInstance();
+        TrackerManager trackerManager = TrackerManager.getInstance();//注意：使用单例模式得到TrackerManager对象的引用
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
             .getTracker(ObjectTracker.getClassType());
         if (objectTracker == null)
@@ -622,7 +622,7 @@ public class UserDefinedTargets extends Activity implements
         if (refFreeFrame != null)
             refFreeFrame.deInit();
         
-        TrackerManager tManager = TrackerManager.getInstance();
+        TrackerManager tManager = TrackerManager.getInstance();//注意：使用单例模式得到TrackerManager对象的引用
         tManager.deinitTracker(ObjectTracker.getClassType());
         
         return result;
@@ -694,7 +694,7 @@ public class UserDefinedTargets extends Activity implements
         {
             // 如果不能设置连续自动对焦，尝试设置不同的模式
             // If continuous autofocus mode fails, attempt to set to a different mode
-            if(!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO))
+            if(!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO))//注意：使用单例模式得到CameraDevice对象的引用
             {
                 CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_NORMAL);
             }
@@ -759,13 +759,13 @@ public class UserDefinedTargets extends Activity implements
     
     
     @Override
-    public void onVuforiaUpdate(State state)
+    public void onVuforiaUpdate(State state)// 每个周期回调更新
     {
-        TrackerManager trackerManager = TrackerManager.getInstance();
+        TrackerManager trackerManager = TrackerManager.getInstance();//注意：使用单例模式得到TrackerManager对象的引用
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
             .getTracker(ObjectTracker.getClassType());
         
-        if (refFreeFrame.hasNewTrackableSource())
+        if (refFreeFrame.hasNewTrackableSource())//是否有可追踪图源
         {
             Log.d(LOGTAG,
                 "Attempting to transfer the trackable source to the dataset");
@@ -774,7 +774,7 @@ public class UserDefinedTargets extends Activity implements
             // Deactivate current dataset
             objectTracker.deactivateDataSet(objectTracker.getActiveDataSet(0));
 
-            // 如果dataset已经满了就清除创建最久的target
+            // 如果dataset已经满了就清除最久创建的target
             // 已存在5个用户定义的targets（user-defined targets）
             // Clear the oldest target if the dataset is full or the dataset
             // already contains five user-defined targets.
@@ -797,12 +797,10 @@ public class UserDefinedTargets extends Activity implements
             }
 
             // 添加新的可追踪图源
-            // Add new trackable source
             Trackable trackable = dataSetUserDef
                 .createTrackable(refFreeFrame.getNewTrackableSource());
 
             // 重新激活当前dataset
-            // Reactivate current dataset
             objectTracker.activateDataSet(dataSetUserDef);
             
             if (mExtendedTracking)
